@@ -1,18 +1,16 @@
 let movers = [];
 
+let numMovers;
 function setup() {
   createCanvas(window.innerWidth,window.innerHeight,WEBGL);
   
   ortho();
   
-  let numMovers = 10;
-  let minSize = 30;
-  let maxSize = 60;
+  numMovers = 20;
   let magSpeed = 0.5;
-  let rotSpeed = 90;
   let zLimit = 100;
   for (let i = 0; i < numMovers; i++) {
-    movers.push(new Mover(minSize,maxSize,magSpeed,rotSpeed,zLimit));
+    movers.push(new Mover(magSpeed,zLimit));
   }
 }
 
@@ -26,62 +24,27 @@ function draw() {
   stroke(50);
   strokeWeight(0.7);
 
+  let gravTrue = 0;
   movers.forEach((object) => {
     push();
     object.update();
     object.draw();
     pop();
+
+    if (object.isCenterGravity) { gravTrue++; }
   });
-}
 
-class SubMover {
-  constructor() {
-    let xLimit = 100;
-    let yLimit = 100;
-    let zLimit = 50;
-
-    this.position = createVector(random(-xLimit,xLimit),random(-yLimit,yLimit),random(-zLimit,zLimit));
-    this.rotation = createVector(random(-1,1),random(-1,1));
-    this.magnitude = createVector(random(-1,1),random(-1,1));
-    this.sizeMod = random(0.02,0.06);
-    this.isSphere;
-    if (random(1) < 0.5) { this.isSphere = true; } else { this.isSphere = false; }
-
-    this.isCenterGravity = true;
+  if (gravTrue > numMovers * 0.8) {
+    movers.forEach((object) => {
+        if (random() < 0.5) { object.isCenterGravity = false; }
+      });
   }
 
-  update(arr) {
-    let isOutsideOfLimits = false;
-    let limit = 25;
-    if (this.position.x > limit || this.position.x < -limit) { isOutsideOfLimits = true; }
-    if (this.position.y > limit || this.position.y < -limit) { isOutsideOfLimits = true; }
-
-    if (isOutsideOfLimits) {
-      if (this.isCenterGravity) {
-        let towardsCenterMag = p5.Vector.sub(createVector(0,0),this.position);
-        towardsCenterMag.div(width/2);
-        this.magnitude.add(towardsCenterMag);
-        this.magnitude.limit(2);
-        this.magnitude.div(2);
-      }
-    }
-
-    this.magnitude.limit(0.5);
-    this.position.add(this.magnitude);
-  }
-
-  draw() {
-    push();
-    translate(this.position);
-    rotateX(frameCount/90 + this.rotation.x);
-    rotateZ(frameCount/90 + this.rotation.y);
-    if (this.isSphere) { sphere(width*this.sizeMod*0.7); } else { torus(width*this.sizeMod); }
-    pop();
-  }
+  console.log(`${gravTrue} / ${numMovers}`);
 }
 
 class Mover {
-  constructor(minSize,maxSize,magSpeed,rotSpeed,zLimit) {
+  constructor(magSpeed,zLimit) {
     this.zLimit = zLimit;
     
     let x = random(-width/2,width/2);
@@ -90,33 +53,19 @@ class Mover {
     let magX = random(-magSpeed,magSpeed);
     let magY = random(-magSpeed,magSpeed);
     let magZ = random(-magSpeed,magSpeed);
-    let rotX = random(-1,1);
-    let rotY = random(-1,1);
     
-    this.rotSpeed = rotSpeed
-    
+    this.rotSpeed;
+    this.maxMagnitude = 2;
+
     this.position = createVector(x,y,z);
-    this.rotation = createVector(rotX,rotY);
+    this.rotation = createVector(random(-180,180),random(-180,180));
     this.magnitude = createVector(magX,magY,magZ);
 
-    this.randColor = color(random(100,255),random(100,255),random(100,255));
-    this.subMoverArr = [];
+    this.size = random(0.01,0.03);
+    this.shape = Math.floor(random(2));
 
-    for (let i = 0; i < Math.floor(random(2,5)); i++) {
-      this.subMoverArr.push(new SubMover());
-    }
-
-    this.isCenterGravity = true;
-  }
-  
-  distanceFromMiddle() {
-    let middleDistance = dist(this.position.x,this.position.y,0,0);
-    let maxDist;
-    if (width > height) { maxDist = width / 2; }
-    else { maxDist = height / 2; }
-    
-    let s = map(middleDistance,0,maxDist,0,150);
-    stroke(s);
+    this.isCenterGravity = false;
+    this.gravityTimer = 0;
   }
   
   checkEdges() {
@@ -127,43 +76,47 @@ class Mover {
 
   update() {
     this.checkEdges();
-    this.distanceFromMiddle();
     
-    if (Math.random() < 0.01) { this.isCenterGravity = !this.isCenterGravity; }
+    let distanceFromMiddle = dist(this.position.x,this.position.y,0,0);
+    let maxDistance;
+
+    if (width > height) { maxDistance = width / 2 } else { maxDistance = height / 2; }
+
+    stroke(map(distanceFromMiddle,0,maxDistance,0,150));
+
+    if (!this.isCenterGravity && this.gravityTimer <= 0) {
+        if (random() < 0.0003) { 
+            this.isCenterGravity = true;
+            this.gravityTimer = random(1000,10000);
+        }
+    }
+
     if (this.isCenterGravity) {
-      let towardsCenterMag = p5.Vector.sub(createVector(0,0),this.position);
-      towardsCenterMag.div(width * 10);
-      this.magnitude.add(towardsCenterMag);
+        let towardsCenterMag = p5.Vector.sub(createVector(0,0),this.position);
+        towardsCenterMag.div(width * 15);
+        this.magnitude.add(towardsCenterMag);
+        this.gravityTimer--;
     }
     
-    this.magnitude.limit(3);
+    this.magnitude.limit(this.maxMagnitude);
+
+    this.rotation.x += this.magnitude.mag();
+    this.rotation.y += this.magnitude.mag();
+
+    //this.magnitude.sub(0,-0.01); // Drop Down Random
     this.position.add(this.magnitude);
   }
   
   draw() {
     push();
     translate(this.position);
-    //fill(this.randColor);
-    this.subMoverArr.forEach((subMover) => {
-      push();
-      subMover.update(this.subMoverArr);
-      subMover.draw();
-      pop();
-    });
+    let size = (height + width) * this.size;
+    rotateX(radians(this.rotation.x));
+    rotateZ(radians(this.rotation.y));
+    if (this.shape) { sphere(size); } else { torus(size); }
     pop();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 class Mover {
