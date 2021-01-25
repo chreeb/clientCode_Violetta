@@ -7,7 +7,7 @@ function setup() {
   speed = 0.003;
   numVertex = 20;
   numWaves = 20;
-  waveStepAmt = 0.02;
+  waveStepAmt = 0.015;
   numStreams = 5;
   streamsStepAmt = 5;
 }
@@ -15,6 +15,8 @@ function setup() {
 function draw() {
   background(255);
   noFill();
+
+  translate(0,height*0.2);
 
   minHeight = height * 0.1;
   heightSize = height * 0.7;
@@ -32,6 +34,7 @@ function draw() {
       y = (-noise(nx,ny) * heightSize) + height - (heightAdj * streams);
       vertex(x,y);
       }
+      vertex(width,y);
       endShape();
     }
   }
