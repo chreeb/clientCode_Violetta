@@ -6,7 +6,7 @@ function setup() {
   z = 0;
   speed = 0.003;
   stepAmt = 20;
-  numWaves = 10;
+  numWaves = 20;
   waveStepAmt = 0.02;
   numStreams = 3;
   streamsStepAmt = 5;
@@ -17,7 +17,8 @@ function draw() {
   noFill();
 
   minHeight = height * 0.1;
-  heightSize = height * 0.8;
+  heightSize = height * 0.7;
+  let heightAdj = height * 0.15;
   strokeWeight(0.5);
 
   for (let streams = 0; streams < numStreams; streams++) {
@@ -26,8 +27,10 @@ function draw() {
       stroke(s);
       beginShape();
       for (let x = 0; x < width; x+=stepAmt) {
-        y = (noise((streams*streamsStepAmt) + x*0.001,z + (waves*waveStepAmt)) * heightSize) + minHeight;
-        vertex(x,y);
+      let nx = (x * 0.001) + streams;
+      let ny = z + (waves * waveStepAmt);
+      y = (-noise(nx,ny) * heightSize) + height - (heightAdj * streams);
+      vertex(x,y);
       }
       endShape();
     }
