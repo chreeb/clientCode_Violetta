@@ -1,12 +1,12 @@
 let movers = [];
 
-// HELLO THIS IS MY NAME
-
 let numMovers;
 function setup() {
   createCanvas(window.innerWidth,window.innerHeight,WEBGL);
   
   ortho();
+  ortho().far = 500;
+  //ortho(-width / 2, width / 2, height / 2, -height / 2, 0, 500);
   
   numMovers = 20;
   let magSpeed = 0.5;
@@ -24,7 +24,8 @@ function draw() {
   background(220);
   
   stroke(50);
-  strokeWeight(0.7);
+  if (mouseX < width/2) { fill(255); } else { noFill(); }
+
 
   let gravTrue = 0;
   movers.forEach((object) => {
@@ -42,7 +43,16 @@ function draw() {
       });
   }
 
-  console.log(`${gravTrue} / ${numMovers}`);
+  //console.log(`${gravTrue} / ${numMovers}`);
+}
+
+class SubMover {
+  constructor() {
+    this.size = random(0.01,0.03);
+    let limit = 25;
+    this.position = createVector(random(-limit,limit),random(-limit,limit),random(-limit,limit));
+    this.rotation = createVector(random(-90,90),random(-90,90));
+  }
 }
 
 class Mover {
@@ -63,11 +73,18 @@ class Mover {
     this.rotation = createVector(random(-180,180),random(-180,180));
     this.magnitude = createVector(magX,magY,magZ);
 
-    this.size = random(0.01,0.03);
-    this.shape = Math.floor(random(2));
-
     this.isCenterGravity = false;
     this.gravityTimer = 0;
+
+    this.type = Math.floor(random(0,3));
+    this.size = random(0.01,0.03);
+
+    if (this.type == 0) {
+      this.subMoverArr = [];
+      for (let i = 0; i < random(2,4); i++) {
+        this.subMoverArr.push(new SubMover());
+      }
+    }
   }
   
   checkEdges() {
@@ -110,12 +127,32 @@ class Mover {
   }
   
   draw() {
+
     push();
     translate(this.position);
-    let size = (height + width) * this.size;
     rotateX(radians(this.rotation.x));
     rotateZ(radians(this.rotation.y));
-    if (this.shape) { sphere(size); } else { torus(size); }
+    if (this.type == 0) {
+      this.subMoverArr.forEach((subMover) => {
+        push();
+        subMover.rotation.x += 0.1;
+        subMover.rotation.y += 0.1;
+        rotateX(radians(subMover.rotation.x));
+        rotateY(radians(subMover.rotation.y));
+        translate(subMover.position);
+        rotateX(radians(subMover.rotation.x));
+        rotateY(radians(subMover.rotation.y));
+        let size = (height + width) * subMover.size;
+        sphere(size);
+        pop();
+      });
+    } else {
+      push();
+      let size = (height + width) * this.size;
+      if (this.type == 1) { sphere(size); } 
+      else if (this.type == 2) { torus(size); }
+      pop();
+    }
     pop();
   }
 }
