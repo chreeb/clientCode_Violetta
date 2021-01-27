@@ -1,8 +1,9 @@
 >**TO-DO:**
 ___
 **404 Page - Waves**
-* Adjust to height of the screen
-* Make waves look smoother (more flowy)
+* <s>Adjust to height of the screen</s>
+* <s>Make waves look smoother (more flowy)</s>
+* Lengthen sinwave length depedant on the width of the screen
 * CPU optimization
 ___
 **Shop Page - Gravity Spheres / Torus**
