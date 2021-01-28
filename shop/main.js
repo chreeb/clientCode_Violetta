@@ -1,4 +1,5 @@
 let movers = [];
+let sphereDetail;
 
 let numMovers;
 function setup() {
@@ -14,6 +15,8 @@ function setup() {
   for (let i = 0; i < numMovers; i++) {
     movers.push(new Mover(magSpeed,zLimit));
   }
+
+  sphereDetail = 12;
 }
 
 function windowResized() {
@@ -24,8 +27,6 @@ function draw() {
   background(220);
   
   stroke(50);
-  if (mouseX < width/2) { fill(255); } else { noFill(); }
-
 
   let gravTrue = 0;
   movers.forEach((object) => {
@@ -46,12 +47,51 @@ function draw() {
   //console.log(`${gravTrue} / ${numMovers}`);
 }
 
-class SubMover {
+class BoolVector {
   constructor() {
+    this.x,this.y,this.z;
+
+    if (Math.floor(random(2))) { this.x = true; } else { this.x = false; }
+    if (Math.floor(random(2))) { this.y = true; } else { this.y = false; }
+    if (Math.floor(random(2))) { this.z = true; } else { this.z = false; }
+  }
+}
+// ------------------------------------------------------------------------------------
+class SubMover {
+  constructor(isCenter,centerSize) {
+    this.isCenter = isCenter;
+
     this.size = random(0.01,0.03);
-    let limit = 25;
-    this.position = createVector(random(-limit,limit),random(-limit,limit),random(-limit,limit));
     this.rotation = createVector(random(-90,90),random(-90,90));
+    this.position = createVector(0,0,0);
+    this.boolVector = new BoolVector();
+
+    this.centerSize;
+    if (!this.isCenter) { 
+      this.size = random(0.01,centerSize);
+      this.centerSize = centerSize;
+      this.updatePosition(); 
+    }
+  }
+
+  update() {
+    this.rotation.x += 0.001;
+    this.rotation.y += 0.001;
+  }
+
+  updatePosition() {
+    if (this.boolVector.x) { this.position.x = ((height + width) * this.centerSize); }
+    if (!this.boolVector.x) { this.position.x = -((height + width) * this.centerSize); }
+
+    if (this.boolVector.y) { this.position.y = ((height + width) * this.centerSize); }
+    if (!this.boolVector.y) { this.position.y = -((height + width) * this.centerSize); }
+
+    if (this.boolVector.z) { this.position.z = ((height + width) * this.centerSize); }
+    if (!this.boolVector.z) { this.position.z = -((height + width) * this.centerSize); }
+  }
+
+  getSize() {
+    return (height + width) * this.size;
   }
 }
 
@@ -76,15 +116,25 @@ class Mover {
     this.isCenterGravity = false;
     this.gravityTimer = 0;
 
-    this.type = Math.floor(random(0,3));
+    this.type = 0;
+    this.randomType = random(100);
+    if (this.randomType < 30) { this.type = 0; }
+    else if (this.randomType < 60) { this.type = 1; }
+    else { this.type = 2; }
+
     this.size = random(0.01,0.03);
 
     if (this.type == 0) {
       this.subMoverArr = [];
       for (let i = 0; i < random(2,4); i++) {
-        this.subMoverArr.push(new SubMover());
+        if (i == 0) { this.subMoverArr.push(new SubMover(true,0)); }
+        else { this.subMoverArr.push(new SubMover(false,this.subMoverArr[0].size)); }
       }
     }
+  }
+
+  updateSubMoverPositions() {
+
   }
   
   checkEdges() {
@@ -119,8 +169,8 @@ class Mover {
     
     this.magnitude.limit(this.maxMagnitude);
 
-    this.rotation.x += this.magnitude.mag();
-    this.rotation.y += this.magnitude.mag();
+    this.rotation.x += this.magnitude.mag() / 2;
+    this.rotation.y += this.magnitude.mag() / 2;
 
     //this.magnitude.sub(0,-0.01); // Drop Down Random
     this.position.add(this.magnitude);
@@ -133,127 +183,26 @@ class Mover {
     rotateX(radians(this.rotation.x));
     rotateZ(radians(this.rotation.y));
     if (this.type == 0) {
-      this.subMoverArr.forEach((subMover) => {
+      sphere(this.subMoverArr[0].getSize(),sphereDetail,sphereDetail);
+      push();
+      this.subMoverArr.forEach((subMover,index) => {
+        if (index == 0) { return; }
+        subMover.update();
         push();
-        subMover.rotation.x += 0.1;
-        subMover.rotation.y += 0.1;
-        rotateX(radians(subMover.rotation.x));
-        rotateY(radians(subMover.rotation.y));
+        rotateX(subMover.rotation.x);
+        rotateY(subMover.rotation.y);
         translate(subMover.position);
-        rotateX(radians(subMover.rotation.x));
-        rotateY(radians(subMover.rotation.y));
-        let size = (height + width) * subMover.size;
-        sphere(size);
+        sphere(subMover.getSize(),sphereDetail,sphereDetail);
         pop();
       });
+      pop();
     } else {
       push();
       let size = (height + width) * this.size;
-      if (this.type == 1) { sphere(size); } 
-      else if (this.type == 2) { torus(size); }
+      if (this.type == 1) { sphere(size,sphereDetail,sphereDetail); } 
+      else if (this.type == 2) { torus(size,sphereDetail,sphereDetail); }
       pop();
     }
     pop();
   }
 }
-
-/*
-class Mover {
-  constructor(minSize,maxSize,magSpeed,rotSpeed,zLimit) {
-    this.isCenterGravity = true;
-
-    this.zLimit = zLimit;
-    
-    let x = random(-width/2,width/2);
-    let y = random(-height/2,height/2);
-    let z = random(-this.zLimit,this.zLimit);
-    let magX = random(-magSpeed,magSpeed);
-    let magY = random(-magSpeed,magSpeed);
-    let magZ = random(-magSpeed,magSpeed);
-    let rotX = random(-1,1);
-    let rotY = random(-1,1);
-    
-    this.rotSpeed = rotSpeed
-    
-    this.position = createVector(x,y,z);
-    this.rotation = createVector(rotX,rotY);
-    this.magnitude = createVector(magX,magY,magZ);
-    this.size = random(minSize,maxSize);
-    
-    this.isSphere = 0;
-    if (random(1) < 0.5) { this.isSphere = true; }
-    else { this.isSphere = false; }
-  }
-  
-  distanceFromMiddle() {
-    let middleDistance = dist(this.position.x,this.position.y,0,0);
-    let maxDist;
-    if (width > height) { maxDist = width / 2; }
-    else { maxDist = height / 2; }
-    
-    let s = map(middleDistance,0,maxDist,0,150);
-    stroke(s);
-  }
-  
-  checkEdges() {
-    if (this.position.x < -width/2 || this.position.x > width/2) { this.magnitude.x = -this.magnitude.x; }
-    if (this.position.y < -height/2 || this.position.y > height/2) { this.magnitude.y = -this.magnitude.y; }
-    if (this.position.z < -this.zLimit || this.position.z > this.zLimit) { this.magnitude.z = -this.magnitude.z; } 
-  }
-  
-  checkNeighbors(arr) {
-    let neighborArr = [];
-
-    for (let other of arr) {
-      if (other == this) { continue; }
-
-      if (dist(this.position.x,this.position.y,other.position.x,other.position.y) < 50) {
-        neighborArr.push(other);
-      }
-    }
-
-    let moveTowardsVec = createVector(0,0);
-    if (neighborArr.length != 0) {
-      var avgPos = createVector(0,0);
-
-      neighborArr.forEach((other) => {
-        avgPos.add(other.position);
-      });
-
-      avgPos.div(neighborArr.length);
-      moveTowardsVec = p5.Vector.sub(avgPos,this.position);
-      moveTowardsVec.normalize();
-
-      moveTowardsVec.limit(0.01);
-      this.magnitude.add(moveTowardsVec);
-    }
-
-    if (Math.random() < 0.01) { this.isCenterGravity = !this.isCenterGravity; }
-    if (this.isCenterGravity) {
-      let towardsCenterMag = p5.Vector.sub(createVector(0,0),this.position);
-      towardsCenterMag.div(width * 10);
-      this.magnitude.add(towardsCenterMag);
-      this.magnitude.limit(5);
-    }
-
-  }
-
-  update() {
-    this.position.add(this.magnitude);
-    this.checkEdges();
-    this.distanceFromMiddle();
-    
-    
-  }
-  
-  draw() {
-    push();
-    translate(this.position.x,this.position.y,this.position.z);
-    rotateX(frameCount/this.rotSpeed + this.rotation.x);
-    rotateZ(frameCount/this.rotSpeed + this.rotation.y);
-    if (this.isSphere) { sphere(this.size); }
-    else { torus(this.size,this.size/4); }
-    pop;
-  }
-}
-*/
