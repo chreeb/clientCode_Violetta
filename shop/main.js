@@ -181,7 +181,7 @@ class Mover {
     fill(map(this.position.x,-width/2,width/2,0,255));
     stroke(map(this.position.y,-height/2,height/2,0,255));
 
-
+    //hi
   }
   
   draw() {
