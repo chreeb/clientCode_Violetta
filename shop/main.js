@@ -16,7 +16,7 @@ function setup() {
     movers.push(new Mover(magSpeed,zLimit));
   }
 
-  sphereDetail = 12;
+  sphereDetail = 20;
 }
 
 function windowResized() {
@@ -80,14 +80,15 @@ class SubMover {
   }
 
   updatePosition() {
-    if (this.boolVector.x) { this.position.x = ((height + width) * this.centerSize); }
-    if (!this.boolVector.x) { this.position.x = -((height + width) * this.centerSize); }
+    let midSize = this.centerSize - (this.size/2);
+    if (this.boolVector.x) { this.position.x = ((height + width) * midSize); }
+    if (!this.boolVector.x) { this.position.x = -((height + width) * midSize); }
 
-    if (this.boolVector.y) { this.position.y = ((height + width) * this.centerSize); }
-    if (!this.boolVector.y) { this.position.y = -((height + width) * this.centerSize); }
+    if (this.boolVector.y) { this.position.y = ((height + width) * midSize); }
+    if (!this.boolVector.y) { this.position.y = -((height + width) * midSize); }
 
-    if (this.boolVector.z) { this.position.z = ((height + width) * this.centerSize); }
-    if (!this.boolVector.z) { this.position.z = -((height + width) * this.centerSize); }
+    if (this.boolVector.z) { this.position.z = ((height + width) * midSize); }
+    if (!this.boolVector.z) { this.position.z = -((height + width) * midSize); }
   }
 
   getSize() {

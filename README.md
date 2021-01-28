@@ -7,8 +7,8 @@ ___
 * CPU optimization
 ___
 **Shop Page - Gravity Spheres / Torus**
-* Adjust the gravity center to chaos
-* Fake a metaball look (smaller boids inside of each main shape)
+* <s>Adjust the gravity center to chaos</s>
+* <s>Fake a metaball look (smaller boids inside of each main shape)</s>
 * CPU optimization
 ___
 **All Pages - Island**
