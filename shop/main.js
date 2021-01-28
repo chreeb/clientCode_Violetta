@@ -80,7 +80,7 @@ class SubMover {
   }
 
   updatePosition() {
-    let midSize = this.centerSize - (this.size/2);
+    let midSize = (this.centerSize/20) - this.size/2;
     if (this.boolVector.x) { this.position.x = ((height + width) * midSize); }
     if (!this.boolVector.x) { this.position.x = -((height + width) * midSize); }
 
