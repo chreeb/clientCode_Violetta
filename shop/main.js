@@ -175,6 +175,13 @@ class Mover {
 
     //this.magnitude.sub(0,-0.01); // Drop Down Random
     this.position.add(this.magnitude);
+
+    // ----------------------------------------------------------
+
+    fill(map(this.position.x,-width/2,width/2,0,255));
+    stroke(map(this.position.y,-height/2,height/2,0,255));
+
+
   }
   
   draw() {
