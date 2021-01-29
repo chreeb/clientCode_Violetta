@@ -1,5 +1,5 @@
 let movers = [];
-let sphereDetail;
+let shapeDetail;
 
 let numMovers;
 function setup() {
@@ -9,18 +9,20 @@ function setup() {
   ortho().far = 500;
   //ortho(-width / 2, width / 2, height / 2, -height / 2, 0, 500);
   
-  numMovers = 20;
+  numMovers = 15;
   let magSpeed = 0.5;
   let zLimit = 100;
   for (let i = 0; i < numMovers; i++) {
     movers.push(new Mover(magSpeed,zLimit));
   }
 
-  sphereDetail = 20;
+ shapeDetail = 20;
 }
 
 function windowResized() {
   resizeCanvas(window.innerWidth,window.innerHeight);
+  ortho();
+  ortho().far = 500;
 }
 
 function draw() {
@@ -31,6 +33,7 @@ function draw() {
   let gravTrue = 0;
   movers.forEach((object) => {
     push();
+    object.moveAwayCheck(movers);
     object.update();
     object.draw();
     pop();
@@ -43,8 +46,6 @@ function draw() {
         if (random() < 0.5) { object.isCenterGravity = false; }
       });
   }
-
-  //console.log(`${gravTrue} / ${numMovers}`);
 }
 
 class BoolVector {
@@ -56,7 +57,7 @@ class BoolVector {
     if (Math.floor(random(2))) { this.z = true; } else { this.z = false; }
   }
 }
-// ------------------------------------------------------------------------------------
+
 class SubMover {
   constructor(isCenter,centerSize) {
     this.isCenter = isCenter;
@@ -133,10 +134,6 @@ class Mover {
       }
     }
   }
-
-  updateSubMoverPositions() {
-
-  }
   
   checkEdges() {
     if (this.position.x < -width/2 || this.position.x > width/2) { this.magnitude.x = -this.magnitude.x; }
@@ -144,30 +141,68 @@ class Mover {
     if (this.position.z < -this.zLimit || this.position.z > this.zLimit) { this.magnitude.z = -this.magnitude.z; } 
   }
 
-  update() {
-    this.checkEdges();
-    
+  updateMiddleDistance() {
     let distanceFromMiddle = dist(this.position.x,this.position.y,0,0);
     let maxDistance;
 
     if (width > height) { maxDistance = width / 2 } else { maxDistance = height / 2; }
 
     stroke(map(distanceFromMiddle,0,maxDistance,0,150));
+  }
 
+  updateCenterGravity() {
     if (!this.isCenterGravity && this.gravityTimer <= 0) {
-        if (random() < 0.0003) { 
-            this.isCenterGravity = true;
-            this.gravityTimer = random(1000,10000);
-        }
+      if (random() < 0.0003) { 
+          this.isCenterGravity = true;
+          this.gravityTimer = random(1000,10000);
+      }
     }
 
     if (this.isCenterGravity) {
-        let towardsCenterMag = p5.Vector.sub(createVector(0,0),this.position);
-        towardsCenterMag.div(width * 15);
-        this.magnitude.add(towardsCenterMag);
-        this.gravityTimer--;
+      let towardsCenterMag = p5.Vector.sub(createVector(0,0),this.position);
+      //towardsCenterMag.div(width * 15);
+      towardsCenterMag.div(width * 5);
+      this.magnitude.add(towardsCenterMag);
+      this.gravityTimer--;
     }
+  }
+
+  moveAwayCheck(moversArr) {
+    let moveAwayVec = createVector(0,0,0);
+    let numNeighbors = 0;
+    let isFill = false;
+    moversArr.forEach((other) => {
+      if (other === this) { return; }
+  
+      let distance = dist(this.position.x,
+                          this.position.y,
+                          this.position.z,
+                          other.position.x,
+                          other.position.y,
+                          other.position.z);
+      
+      if (distance < (height+width) * this.size * 3) { 
+        isFill = true; 
+        numNeighbors++;
+        moveAwayVec.add(other.position);
+      }
+    });
     
+    if (numNeighbors != 0) {
+      moveAwayVec.div(numNeighbors);
+  
+      moveAwayVec = p5.Vector.sub(moveAwayVec,this.position);
+      moveAwayVec.div(width * 2);
+      //moveAwayVec.limit(0.02);
+      this.magnitude.sub(moveAwayVec);
+    }
+    }
+
+  update() {
+    this.checkEdges()
+    this.updateMiddleDistance();
+    this.updateCenterGravity();
+
     this.magnitude.limit(this.maxMagnitude);
 
     this.rotation.x += this.magnitude.mag() / 2;
@@ -175,23 +210,33 @@ class Mover {
 
     //this.magnitude.sub(0,-0.01); // Drop Down Random
     this.position.add(this.magnitude);
-
-    // ----------------------------------------------------------
-
-    fill(map(this.position.x,-width/2,width/2,0,255));
-    stroke(map(this.position.y,-height/2,height/2,0,255));
-
-    //hi
   }
-  
-  draw() {
 
+  getSize() {
+    return (height + width) * this.size;
+  }
+
+  draw() {
     push();
     translate(this.position);
     rotateX(radians(this.rotation.x));
     rotateZ(radians(this.rotation.y));
-    if (this.type == 0) {
-      sphere(this.subMoverArr[0].getSize(),sphereDetail,sphereDetail);
+    switch (this.type) {
+      case 0:
+        this.drawSubMovers();
+        break;
+      case 1:
+        sphere(this.getSize(),shapeDetail,shapeDetail);
+        break;
+      case 2:
+        torus(this.getSize(),shapeDetail,shapeDetail);
+        break;
+    }
+    pop();
+  }
+
+  drawSubMovers() {
+    sphere(this.subMoverArr[0].getSize(),shapeDetail,shapeDetail);
       push();
       this.subMoverArr.forEach((subMover,index) => {
         if (index == 0) { return; }
@@ -200,17 +245,9 @@ class Mover {
         rotateX(subMover.rotation.x);
         rotateY(subMover.rotation.y);
         translate(subMover.position);
-        sphere(subMover.getSize(),sphereDetail,sphereDetail);
+        sphere(subMover.getSize(),shapeDetail,shapeDetail);
         pop();
       });
       pop();
-    } else {
-      push();
-      let size = (height + width) * this.size;
-      if (this.type == 1) { sphere(size,sphereDetail,sphereDetail); } 
-      else if (this.type == 2) { torus(size,sphereDetail,sphereDetail); }
-      pop();
-    }
-    pop();
   }
 }
