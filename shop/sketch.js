@@ -135,6 +135,9 @@ class Mover {
     this.gravityTimer = 0;
 
     this.towardsCenterMag;
+    
+    this.moveAwayVec = createVector(0,0,0);
+    this.numNeighbors;
 
     this.type = 0;
     this.randomType = getRandom(0,100);
@@ -184,9 +187,8 @@ class Mover {
   }
 
   moveAwayCheck(moversArr) {
-    let moveAwayVec = createVector(0,0,0);
-    let numNeighbors = 0;
-    let isFill = false;
+    this.moveAwayVec.set(0,0,0);
+    this.numNeighbors = 0;
     moversArr.forEach((other) => {
       if (other === this) { return; }
       
@@ -197,19 +199,18 @@ class Mover {
                           other.position.y,
                           other.position.z);
       
-      if (distance < (height+width) * this.size * 3) { 
-        isFill = true; 
-        numNeighbors++;
-        moveAwayVec.add(other.position);
+      if (distance < (height+width) * this.size * 3) {
+        this.numNeighbors++;
+        this.moveAwayVec.add(other.position);
       }
     });
     
-    if (numNeighbors != 0) {
-      moveAwayVec.div(numNeighbors);
+    if (this.numNeighbors != 0) {
+      this.moveAwayVec.div(this.numNeighbors);
   
-      moveAwayVec = p5.Vector.sub(moveAwayVec,this.position);
-      moveAwayVec.div(width * 2);
-      this.magnitude.sub(moveAwayVec);
+      this.moveAwayVec = p5.Vector.sub(this.moveAwayVec,this.position);
+      this.moveAwayVec.div(width * 2);
+      this.magnitude.sub(this.moveAwayVec);
     }
   }
 
