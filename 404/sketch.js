@@ -1,8 +1,12 @@
+p5.disableFriendlyErrors = true;
+
 let y,z,speed,numVertex,numWaves,waveStepAmt,numStreams,streamStepAmt,minHeight,heightSize;
 let heightBetweenWaves,heightAdj,strokeArr,vertexFrameAdj,framerate;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  let thisCanvas = createCanvas(window.innerWidth,window.innerHeight);
+  thisCanvas.parent('sketch');
+
   y = 0;
   z = 0;
   speed = 0.001;
@@ -34,7 +38,8 @@ function resetValues() {
 }
 
 function draw() {
-  background(255);
+  background(0,0,0,0);
+  clear();
   noFill();
 
   framerate = int(getFrameRate());
@@ -62,14 +67,3 @@ function draw() {
 
   z+=speed;
 }
-
-/*
-        let nx = (x * 0.001) + streams;
-        let ny = z + (waves * waveStepAmt) * 1.5;
-
-        let s = (sin((frameCount*0.003) + (x*0.003) + (streams*0.7)) + 1) / 2;
-        let n = (noise(nx,ny) + s) / 2;
-
-        y = ((-n * heightSize) + height - (heightAdj * streams)) + (waves * heightBetweenWaves) * 2;
-*/
-    
