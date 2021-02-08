@@ -7,8 +7,8 @@ function setup() {
   createCanvas(window.innerWidth,window.innerHeight,WEBGL);
   smooth();
   
-  gridWid = 30;
-  gridHei = 30;
+  gridWid = 36;
+  gridHei = 36;
   numHeiChoices = 10;
   currentHeiChoice = 0;
   grid = [];
@@ -41,19 +41,21 @@ function windowResized() {
 function draw() {
   background(0,0,0,0);
 
-  let size = (width / height) * 50;
+  let size = (height/width) * 100;
 
   let heiMod = (Math.sin(frameCount/300) + 1) / 2;
   if (heiMod < 0.0001) { currentHeiChoice++; }
   if (currentHeiChoice >= numHeiChoices) { currentHeiChoice = 0; }
-  
+  let col;
+
+  translate(0,height*0.3,0);
   rotateX(radians(70));
   rotateZ(radians(45));
   translate(-(size * (gridWid-1))*0.6,-(size * (gridHei-1))*0.6,0);
 
   strokeWeight(0.7);
   for (let y = 0; y < gridHei - 1; y++) {
-    let col = map(y,0,gridHei-1,200,255);
+    col = map(y,0,gridHei-1,200,255);
     fill(col);
     stroke(col-120);
     beginShape(TRIANGLE_STRIP);
