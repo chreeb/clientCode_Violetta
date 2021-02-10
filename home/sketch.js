@@ -50,6 +50,8 @@ function draw() {
 
   let size = (height/width) * 100;
 
+  let minHeightLimit = 0.1;
+
   let heiMod = (Math.sin(frameCount/300) + 1) / 2;
   if (heiMod < 0.0001) { currentHeiChoice++; }
   if (currentHeiChoice >= numHeiChoices) { currentHeiChoice = 0; }
@@ -67,11 +69,13 @@ function draw() {
   strokeWeight(0.7);
   for (let y = 0; y < gridHei - 1; y++) {
     beginShape(TRIANGLE_STRIP);
+    fill(map(y,0,gridHei-1,150,255));
     for (let x = 0; x < gridWid; x++) {
 
       let h1 = grid[x][y].y[currentHeiChoice][0]*heiOne;
       let h2 = grid[x][y].y[currentHeiChoice][1]*heiTwo;
       let n = (h1 + h2) / 2;
+      if (n < minHeightLimit) { n = minHeightLimit; }
 
       vertex(grid[x][y].x*size,
              grid[x][y].z*size,
@@ -80,6 +84,7 @@ function draw() {
       h1 = grid[x][y+1].y[currentHeiChoice][0]*heiOne;
       h2 = grid[x][y+1].y[currentHeiChoice][1]*heiTwo;
       n = (h1 + h2) / 2;
+      if (n < minHeightLimit) { n = minHeightLimit; }
 
       vertex(grid[x][y+1].x*size,
              grid[x][y+1].z*size,
