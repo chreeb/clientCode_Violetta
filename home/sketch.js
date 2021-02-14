@@ -69,7 +69,7 @@ function draw() {
   strokeWeight(0.7);
   for (let y = 0; y < gridHei - 1; y++) {
     beginShape(TRIANGLE_STRIP);
-    fill(map(y,0,gridHei-1,150,255));
+    //fill(map(y,0,gridHei-1,150,255));
     for (let x = 0; x < gridWid; x++) {
       z1 = (grid[x][y].y[currentHeiChoice][0]*heiOne +
             grid[x][y].y[currentHeiChoice][1]*heiTwo) * 0.8;
