@@ -4,7 +4,8 @@ p5.disableFriendlyErrors = true;
 let grid,gridWid,gridHei,numHeiChoices,currentHeiChoice,z1,z2;
 
 function setup() {
-  createCanvas(window.innerWidth,window.innerHeight,WEBGL);
+  let thisCanvas = createCanvas(window.innerWidth,window.innerHeight,WEBGL);
+  thisCanvas.parent('sketch');
   smooth();
   noiseSeed(10);
   
